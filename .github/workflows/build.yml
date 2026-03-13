@@ -40,18 +40,18 @@ jobs:
       - name: Build for Windows
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --onefile --name "TankBattle-Windows" --add-data "assets;assets" main.py
+          pyinstaller --onefile --name "TankBattle-Windows" main.py
         shell: bash
 
       - name: Build for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pyinstaller --onefile --name "TankBattle-Linux" --add-data "assets:assets" main.py
+          pyinstaller --onefile --name "TankBattle-Linux" main.py
 
       - name: Build for macOS
         if: matrix.os == 'macos-latest'
         run: |
-          pyinstaller --onefile --name "TankBattle-macOS" --add-data "assets:assets" main.py
+          pyinstaller --onefile --name "TankBattle-macOS" main.py
 
       - name: Create archive
         run: |
