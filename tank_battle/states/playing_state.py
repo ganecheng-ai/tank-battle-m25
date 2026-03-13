@@ -49,17 +49,17 @@ class PlayingState(GameState):
         # 创建地图 - 传入关卡参数
         self.map = TileMap(self.game.level)
 
+        # 先初始化列表（确保bullets列表在玩家创建前就存在）
+        self.enemies = []
+        self.bullets = []
+        self.enemy_spawn_timer = 0
+        self.enemies_killed = 0
+
         # 创建玩家坦克
         self.player = PlayerTank(SCREEN_WIDTH // 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 2)
         self.player.add_enemies(self.enemies)
         self.player.add_bullets(self.bullets)
         self.player.set_map(self.map)
-
-        # 初始化敌方
-        self.enemies = []
-        self.bullets = []
-        self.enemy_spawn_timer = 0
-        self.enemies_killed = 0
 
         # 初始化道具和爆炸管理器
         self.powerup_manager = PowerUpManager()
