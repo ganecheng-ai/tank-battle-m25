@@ -7,13 +7,14 @@ from tank_battle.constants import *
 class TileMap:
     """地图系统"""
 
-    def __init__(self):
+    def __init__(self, level: int = 1):
         self.width = MAP_WIDTH
         self.height = MAP_HEIGHT
         self.tile_size = TILE_SIZE
         self.tiles = []
         self.base_rect = None
         self.base_alive = True
+        self.level = level
 
         # 初始化地图
         self._init_map()
@@ -41,7 +42,7 @@ class TileMap:
         # 边界墙
         self._create_borders()
 
-        # 随机障碍物
+        # 根据关卡生成障碍物
         self._create_obstacles()
 
     def _create_borders(self):
@@ -66,7 +67,7 @@ class TileMap:
                 GAME_AREA_OFFSET_Y + i * TILE_SIZE)
 
     def _create_obstacles(self):
-        """创建随机障碍物"""
+        """创建随机障碍物 - 根据关卡调整难度"""
         import random
 
         # 保留区域 (玩家出生点周围不能有障碍)
@@ -79,6 +80,11 @@ class TileMap:
         base_protection = [(5, 11), (6, 11), (7, 11), (5, 12), (6, 12), (7, 12),
                           (5, 10), (7, 10), (6, 10)]
 
+        # 根据关卡调整障碍物生成概率
+        brick_prob = 0.1 + min(0.1, self.level * 0.02)  # 10%-20%
+        steel_prob = 0.05 + min(0.1, self.level * 0.02)  # 5%-15%
+        grass_prob = 0.2 - min(0.1, self.level * 0.02)  # 20%-10%
+
         for y in range(1, self.height - 1):
             for x in range(1, self.width - 1):
                 pos = (x, y)
@@ -89,18 +95,18 @@ class TileMap:
 
                 # 随机生成瓦片
                 rand = random.random()
-                if rand < 0.1:
-                    # 10% 砖块
+                if rand < brick_prob:
+                    # 砖块
                     self.tiles[y][x] = Tile(TILE_BRICK,
                         GAME_AREA_OFFSET_X + x * TILE_SIZE,
                         GAME_AREA_OFFSET_Y + y * TILE_SIZE)
-                elif rand < 0.15:
-                    # 5% 钢铁
+                elif rand < brick_prob + steel_prob:
+                    # 钢铁
                     self.tiles[y][x] = Tile(TILE_STEEL,
                         GAME_AREA_OFFSET_X + x * TILE_SIZE,
                         GAME_AREA_OFFSET_Y + y * TILE_SIZE)
-                elif rand < 0.2:
-                    # 5% 草丛
+                elif rand < brick_prob + steel_prob + grass_prob:
+                    # 草丛
                     self.tiles[y][x] = Tile(TILE_GRASS,
                         GAME_AREA_OFFSET_X + x * TILE_SIZE,
                         GAME_AREA_OFFSET_Y + y * TILE_SIZE)
@@ -175,3 +181,35 @@ class TileMap:
                     return True
 
         return False
+
+    def protect_base(self):
+        """加固基地周围 - 将基地周围的砖块变成钢铁"""
+        # 基地周围的坐标
+        base_positions = [
+            (5, 11), (6, 11), (7, 11),
+            (5, 12), (6, 12), (7, 12),
+            (5, 10), (7, 10), (6, 10),
+            (4, 11), (8, 11)
+        ]
+
+        for x, y in base_positions:
+            if 0 <= x < self.width and 0 <= y < self.height:
+                self.tiles[y][x] = Tile(TILE_STEEL,
+                    GAME_AREA_OFFSET_X + x * TILE_SIZE,
+                    GAME_AREA_OFFSET_Y + y * TILE_SIZE)
+
+    def revert_base_protection(self):
+        """恢复基地保护 - 将钢铁变回砖块"""
+        # 基地周围的坐标
+        base_positions = [
+            (5, 11), (6, 11), (7, 11),
+            (5, 12), (6, 12), (7, 12),
+            (5, 10), (7, 10), (6, 10),
+            (4, 11), (8, 11)
+        ]
+
+        for x, y in base_positions:
+            if 0 <= x < self.width and 0 <= y < self.height:
+                self.tiles[y][x] = Tile(TILE_BRICK,
+                    GAME_AREA_OFFSET_X + x * TILE_SIZE,
+                    GAME_AREA_OFFSET_Y + y * TILE_SIZE)

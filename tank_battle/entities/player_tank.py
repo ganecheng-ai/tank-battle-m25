@@ -13,10 +13,14 @@ class PlayerTank(Tank):
         super().__init__(x, y, DIRECTION_UP)
         self.owner = "player"
         self.speed = PLAYER_SPEED
+        self.base_speed = PLAYER_SPEED  # 基础速度
         self.fire_speed = PLAYER_BULLET_SPEED
 
         # 火力等级
         self.power_level = 1
+
+        # 加速计时器
+        self.speed_timer = 0
 
         # 按键状态
         self.keys = {
@@ -63,6 +67,12 @@ class PlayerTank(Tank):
 
         if not self.alive_flag:
             return
+
+        # 处理加速计时器
+        if self.speed_timer > 0:
+            self.speed_timer -= 1
+            if self.speed_timer <= 0:
+                self.speed = self.base_speed  # 恢复正常速度
 
         # 处理移动
         dx = 0

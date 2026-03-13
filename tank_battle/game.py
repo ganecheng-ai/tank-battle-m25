@@ -100,3 +100,8 @@ class TankBattleGame:
         if self.lives <= 0:
             self.game_over = True
             self.change_state(GameOverState)
+
+    def add_life(self):
+        """增加生命"""
+        self.lives += 1
+        self.logger.info(f"获得生命，当前: {self.lives}")

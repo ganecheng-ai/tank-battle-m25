@@ -7,6 +7,8 @@ from tank_battle.logger import get_logger
 from tank_battle.entities.player_tank import PlayerTank
 from tank_battle.entities.enemy_tank import EnemyTank
 from tank_battle.entities.bullet import Bullet
+from tank_battle.entities.powerup import PowerUpManager
+from tank_battle.entities.explosion import ExplosionManager
 from tank_battle.map.tile_map import TileMap
 
 
@@ -26,6 +28,14 @@ class PlayingState(GameState):
         self.enemy_spawn_timer = 0
         self.max_enemies = MAX_ENEMIES
 
+        # 道具和爆炸系统
+        self.powerup_manager = PowerUpManager()
+        self.explosion_manager = ExplosionManager()
+
+        # 道具效果计时器
+        self.shovel_timer = 0
+        self.grenade_timer = 0
+
         # 游戏数据
         self.enemies_killed = 0
 
@@ -36,8 +46,8 @@ class PlayingState(GameState):
         """初始化游戏"""
         self.logger.info("初始化游戏对象")
 
-        # 创建地图
-        self.map = TileMap()
+        # 创建地图 - 传入关卡参数
+        self.map = TileMap(self.game.level)
 
         # 创建玩家坦克
         self.player = PlayerTank(SCREEN_WIDTH // 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 2)
@@ -50,6 +60,14 @@ class PlayingState(GameState):
         self.bullets = []
         self.enemy_spawn_timer = 0
         self.enemies_killed = 0
+
+        # 初始化道具和爆炸管理器
+        self.powerup_manager = PowerUpManager()
+        self.explosion_manager = ExplosionManager()
+
+        # 道具效果计时器
+        self.shovel_timer = 0
+        self.grenade_timer = 0
 
         # 生成初始敌人
         self._spawn_enemy()
@@ -103,6 +121,23 @@ class PlayingState(GameState):
             if not bullet.alive():
                 self.bullets.remove(bullet)
 
+        # 更新道具系统
+        self.powerup_manager.update()
+        self.explosion_manager.update()
+
+        # 检查玩家是否吃到道具
+        if self.player and self.player.alive():
+            powerup_type = self.powerup_manager.check_collision(self.player.rect)
+            if powerup_type is not None:
+                self._apply_powerup(powerup_type)
+
+        # 处理道具效果计时器
+        if self.shovel_timer > 0:
+            self.shovel_timer -= 1
+            if self.shovel_timer == 0:
+                # 恢复钢铁为普通砖块
+                self.map.revert_base_protection()
+
         # 子弹与坦克碰撞检测
         self._check_bullet_collisions()
 
@@ -116,6 +151,57 @@ class PlayingState(GameState):
         # 检查胜利条件
         if self.map.base_alive and self.enemies_killed >= 20:
             self.game.game_won = True
+
+    def _apply_powerup(self, powerup_type: int):
+        """应用道具效果"""
+        powerup_names = {
+            POWERUP_STAR: "强化火力",
+            POWERUP_HELMET: "防护头盔",
+            POWERUP_SHOVEL: "加固老家",
+            POWERUP_GRENADE: "手雷",
+            POWERUP_SPEED: "加速鞋",
+            POWERUP_TANK: "增加生命",
+        }
+
+        self.logger.info(f"获得道具: {powerup_names.get(powerup_type, '未知')}")
+
+        if powerup_type == POWERUP_STAR:
+            # 强化火力
+            if self.player:
+                self.player.upgrade_power()
+                self.game.add_score(50)
+
+        elif powerup_type == POWERUP_HELMET:
+            # 临时无敌
+            if self.player:
+                self.player.invincible = True
+                self.player.invincible_timer = 600  # 10秒
+
+        elif powerup_type == POWERUP_SHOVEL:
+            # 加固老家
+            if self.map:
+                self.map.protect_base()
+                self.shovel_timer = 600  # 10秒
+            self.game.add_score(50)
+
+        elif powerup_type == POWERUP_GRENADE:
+            # 全屏敌人
+            for enemy in self.enemies[:]:
+                enemy.take_damage(10)  # 秒杀
+                self.explosion_manager.add_explosion(enemy.x, enemy.y, "normal")
+            self.game.add_score(100)
+
+        elif powerup_type == POWERUP_SPEED:
+            # 加速
+            if self.player:
+                self.player.speed = PLAYER_SPEED * 2
+                # 5秒后恢复正常速度
+                self.player.speed_timer = 300
+
+        elif powerup_type == POWERUP_TANK:
+            # 增加生命
+            self.game.add_life()
+            self.game.add_score(50)
 
     def _check_bullet_collisions(self):
         """子弹碰撞检测"""
@@ -137,6 +223,8 @@ class PlayingState(GameState):
                         if not enemy.alive():
                             self.enemies_killed += 1
                             self.game.add_score(100)
+                            # 添加爆炸效果
+                            self.explosion_manager.add_explosion(enemy.x, enemy.y, "normal")
                         break
 
             # 敌方子弹击中玩家
@@ -146,6 +234,7 @@ class PlayingState(GameState):
                         self.player.take_damage(bullet.damage)
                         bullet.kill()
                         if not self.player.alive():
+                            self.explosion_manager.add_explosion(self.player.x, self.player.y, "large")
                             self._player_died()
 
     def _player_died(self):
@@ -183,6 +272,14 @@ class PlayingState(GameState):
         # 绘制子弹
         for bullet in self.bullets:
             bullet.draw(screen)
+
+        # 绘制道具
+        for powerup in self.powerup_manager.get_powerups():
+            powerup.draw(screen)
+
+        # 绘制爆炸效果
+        for explosion in self.explosion_manager.get_explosions():
+            explosion.draw(screen)
 
         # 绘制UI
         self._draw_ui(screen)
