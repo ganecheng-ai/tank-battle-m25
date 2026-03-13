@@ -65,6 +65,7 @@ jobs:
             tar -czvf "TankBattle-macOS.tar.gz" -C dist TankBattle-macOS
             echo "artifact=TankBattle-macOS.tar.gz" >> $GITHUB_ENV
           fi
+        shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
