@@ -18,9 +18,9 @@ TILES_DIR = os.path.join(SPRITES_DIR, "tiles")
 EFFECTS_DIR = os.path.join(SPRITES_DIR, "effects")
 
 # ==================== 游戏配置 ====================
-# 屏幕尺寸
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+# 屏幕尺寸 (适配游戏区域)
+SCREEN_WIDTH = 600  # 560游戏区域 + 40边距
+SCREEN_HEIGHT = 560
 SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
 # 游戏区域 (地图区域)

@@ -302,9 +302,9 @@ class PlayingState(GameState):
 
         # 敌人数量
         enemy_text = font.render(f"敌人: {self.enemies_killed}/20", True, COLOR_WHITE)
-        screen.blit(enemy_text, (GAME_AREA_OFFSET_X + 600, 10))
+        screen.blit(enemy_text, (GAME_AREA_OFFSET_X + 450, 10))
 
         # 操作提示
         hint_font = pygame.font.SysFont(CHINESE_FONTS, FONT_SIZE_SMALL - 2)
         hint = hint_font.render("方向键移动 空格射击 R重开", True, COLOR_GREEN)
-        screen.blit(hint, (SCREEN_WIDTH - 200, 10))
+        screen.blit(hint, (SCREEN_WIDTH - 190, 10))
