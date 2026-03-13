@@ -154,9 +154,9 @@ class TileMap:
 
     def check_bullet_collision(self, bullet) -> bool:
         """检查子弹碰撞"""
-        # 转换为瓦片坐标
-        tx = (bullet.x - GAME_AREA_OFFSET_X) // TILE_SIZE
-        ty = (bullet.y - GAME_AREA_OFFSET_Y) // TILE_SIZE
+        # 转换为瓦片坐标 (使用int()确保是整数类型)
+        tx = int((bullet.x - GAME_AREA_OFFSET_X) // TILE_SIZE)
+        ty = int((bullet.y - GAME_AREA_OFFSET_Y) // TILE_SIZE)
 
         if 0 <= tx < self.width and 0 <= ty < self.height:
             tile = self.tiles[ty][tx]
