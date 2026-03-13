@@ -53,18 +53,22 @@ jobs:
         run: |
           pyinstaller --onefile --name "TankBattle-macOS" main.py
 
-      - name: Create archive
+      - name: Create archive for Windows
+        if: matrix.os == 'windows-latest'
+        run: powershell -Command "Compress-Archive -Path 'dist/TankBattle-Windows.exe' -DestinationPath 'TankBattle-Windows.zip'; Write-Output 'artifact=TankBattle-Windows.zip' | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append"
+
+      - name: Create archive for Linux
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            powershell -Command "Compress-Archive -Path 'dist/TankBattle-Windows.exe' -DestinationPath 'TankBattle-Windows.zip'"
-            echo "artifact=TankBattle-Windows.zip" >> $GITHUB_ENV
-          elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            tar -czvf "TankBattle-Linux.tar.gz" -C dist TankBattle-Linux
-            echo "artifact=TankBattle-Linux.tar.gz" >> $GITHUB_ENV
-          else
-            tar -czvf "TankBattle-macOS.tar.gz" -C dist TankBattle-macOS
-            echo "artifact=TankBattle-macOS.tar.gz" >> $GITHUB_ENV
-          fi
+          tar -czvf "TankBattle-Linux.tar.gz" -C dist TankBattle-Linux
+          echo "artifact=TankBattle-Linux.tar.gz" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create archive for macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          tar -czvf "TankBattle-macOS.tar.gz" -C dist TankBattle-macOS
+          echo "artifact=TankBattle-macOS.tar.gz" >> $GITHUB_ENV
         shell: bash
 
       - name: Upload artifact
