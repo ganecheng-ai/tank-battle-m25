@@ -11,6 +11,17 @@ class EnemyTank(Tank):
     def __init__(self, x: int, y: int):
         # 随机方向
         direction = random.choice([DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT])
+
+        # 坦克类型 (影响颜色) - 必须在调用父类__init__之前设置
+        self.enemy_type = random.choice(["normal", "fast", "heavy"])
+
+        if self.enemy_type == "fast":
+            self.color = (200, 200, 50)  # 黄色
+        elif self.enemy_type == "heavy":
+            self.color = (150, 50, 50)  # 红色
+        else:
+            self.color = (150, 100, 50)  # 棕色
+
         super().__init__(x, y, direction)
 
         self.owner = "enemy"
@@ -24,19 +35,12 @@ class EnemyTank(Tank):
         self.ai_timer = 0
         self.ai_change_interval = random.randint(60, 180)
 
-        # 坦克类型 (影响颜色)
-        self.enemy_type = random.choice(["normal", "fast", "heavy"])
-
         if self.enemy_type == "fast":
             self.speed = 2.5
-            self.color = (200, 200, 50)  # 黄色
         elif self.enemy_type == "heavy":
             self.speed = 1
             self.health = 2
             self.max_health = 2
-            self.color = (150, 50, 50)  # 红色
-        else:
-            self.color = (150, 100, 50)  # 棕色
 
         self.update_image()
 

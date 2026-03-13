@@ -8,6 +8,8 @@ class PlayerTank(Tank):
     """玩家坦克"""
 
     def __init__(self, x: int, y: int):
+        # 玩家颜色必须在调用父类__init__之前设置，因为父类会调用_create_tank_image()
+        self.color = (50, 150, 200)  # 蓝色
         super().__init__(x, y, DIRECTION_UP)
         self.owner = "player"
         self.speed = PLAYER_SPEED
@@ -23,9 +25,6 @@ class PlayerTank(Tank):
             pygame.K_LEFT: False,
             pygame.K_RIGHT: False,
         }
-
-        # 改变坦克颜色为玩家色
-        self.color = (50, 150, 200)  # 蓝色
 
     def _create_tank_image(self) -> pygame.Surface:
         """创建玩家坦克图像"""
